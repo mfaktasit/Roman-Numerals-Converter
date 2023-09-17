@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  Roman-Numerals-Project
+
+Resources:
+  FatihInstanceSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allows acces on ports 80, 22 and 8080 # Required
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+
+  FatihInstance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: t2.micro
+      KeyName: firstkey # Use your own key pair without ".pem"
+      SecurityGroups:
+        - !Ref FatihInstanceSG
+      Tags:
+        - Key: Name
+          Value: FatihCFNInstance
+        - Key: Environment
+          Value: Dev
+      UserData:
+        Fn::Base64: !Sub |
+          #! /bin/bash
+          yum update -y
+          yum install python -y
+          yum install pip -y
+          pip install Flask
+          cd /home/ec2-user
+          wget -P templates https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/templates/index.html?token=GHSAT0AAAAAACFPFWTV4SFHAANKZDT7MZBIZIHKBOA
+          wget -P templates https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/templates/result.html?token=GHSAT0AAAAAACFPFWTUPJLP2TIG2OE2UAO6ZIHKB2Q
+          wget https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/roman-numerals-converter-app.py?token=GHSAT0AAAAAACFPFWTUBE73OTD5NTJ3MLTYZIHJYWA
+          sudo python3 roman-numerals-converter-app.py
+Parameters:
+  LatestAmiId:
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
