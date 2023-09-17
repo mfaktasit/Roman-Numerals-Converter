@@ -21,7 +21,7 @@ Resources:
           ToPort: 8080
           CidrIp: 0.0.0.0/0
 
-  FatihInstance1:
+  RomenNumeralsProject:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !Ref LatestAmiId
@@ -31,9 +31,7 @@ Resources:
         - !Ref FatihInstanceSG
       Tags:
         - Key: Name
-          Value: FatihCFNInstance
-        - Key: Environment
-          Value: Dev
+          Value: !Sub Web Server of StackName ${AWS::StackName}
       UserData:
         Fn::Base64: !Sub |
           #! /bin/bash
@@ -42,11 +40,18 @@ Resources:
           yum install pip -y
           pip install Flask
           cd /home/ec2-user
-          wget -P templates https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/templates/index.html?token=GHSAT0AAAAAACFPFWTV4SFHAANKZDT7MZBIZIHKBOA
-          wget -P templates https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/templates/result.html?token=GHSAT0AAAAAACFPFWTUPJLP2TIG2OE2UAO6ZIHKB2Q
-          wget https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/roman-numerals-converter-app.py?token=GHSAT0AAAAAACFPFWTUBE73OTD5NTJ3MLTYZIHJYWA
+          wget -P templates https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/templates/index.html
+          wget -P templates https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/templates/result.html
+          wget https://raw.githubusercontent.com/mfaktasit/Roman-Numerals-Converter/main/roman-numerals-converter-app.py
           sudo python3 roman-numerals-converter-app.py
 Parameters:
   LatestAmiId:
     Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
     Default: "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+
+Outputs:
+  WebSiteURL:
+    Description: This output gives the URL of EC2
+    Value: !Sub
+      - http://${PublicAddress}
+      - PublicAddress: !GetAtt RomenNumeralsProject.PublicDnsName
